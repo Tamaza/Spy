@@ -3,6 +3,7 @@ import pygame, sys
 import string
 from settings import *
 from button import Button
+import random
 
 mainClock = pygame.time.Clock()
 from pygame.locals import *
@@ -23,7 +24,12 @@ def draw_text(text, font, color, surface, x, y):
     surface.blit(textobj, textrect)
 
 mark_button = Button(screen_width-50,screen_height-690, question_mark_img)
-start_button = Button(screen_width-  700,screen_height-690, start_img)
+start_button = Button(screen_width- 690,screen_height-690, start_img)
+players_button = Button(50, 20, players_img)
+timer_button = Button(50,100,timer_img)
+begin_button = Button( screen_width //2.3 ,screen_height -470,begin_img)
+spy_button = Button( screen_width // 3, screen_height // 2,spy_img)
+iknow_button = Button( screen_width // 3, screen_height // 2,iknow_img)
 
 
 
@@ -32,23 +38,23 @@ click = False
 
 
 def main_menu():
-    while True:
 
+    while True:
+        pygame.draw.rect(screen, (255, 255, 255), mark_button, 10)
         screen.fill((0, 0, 0))
-        #draw_text('main menu', font1, (255, 255, 255), screen, 20, 20)
+        mark_button.draw()
+        start_button.draw()
+
+
         draw_text('Welcome To Spy', font2, (255, 255, 255), screen, screen_width // 3 ,screen_height // 2.5)
         screen.blit(spy_img, ( screen_width // 3 ,screen_height // 2))
 
 
-
-
-        #button_1 = pygame.Rect(50, 100, 200, 50)
-        #button_2 = pygame.Rect(50, 200, 200, 50)
-        if mark_button.draw():
+        if mark_button.collide():
             rules()
 
-        if start_button.draw():
-            game()
+        if start_button.collide():
+            game_menu()
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -66,12 +72,29 @@ def main_menu():
         mainClock.tick(60)
 
 
-def game():
+def game_menu():
+    global player_count
+    global timer_min
     running = True
+
     while running:
         screen.fill((0, 0, 0))
+        players_button.draw()
+        timer_button.draw()
+        begin_button.draw()
+        screen.blit(spy_img, (screen_width // 3, screen_height // 2))
 
-        draw_text('game', font1, (255, 255, 255), screen, 20, 20)
+        if players_button.collide():
+            player_count +=1
+        if timer_button.collide():
+            timer_min +=1
+        if begin_button.collide():
+            game()
+
+
+
+        draw_text(f'{player_count}', font2, (255, 255, 255), screen, screen_width-50,20)
+        draw_text(f'{timer_min}', font2, (255, 255, 255), screen, screen_width - 50, 100)
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -84,7 +107,132 @@ def game():
         mainClock.tick(60)
 
 
+
+
+def timer_screen():
+    global player_count
+    global timer_min
+    global timer_sec
+    running = True
+    screen.fill((0, 0, 0))
+    start_ticks = pygame.time.get_ticks()  #
+    counter, text = timer_sec, f'{str(timer_sec)}'.rjust(3)
+    pygame.time.set_timer(pygame.USEREVENT, 1000)
+
+
+
+    while running:
+
+        # seconds = (pygame.time.get_ticks() - start_ticks) / 1000  # calculate how many seconds
+        # if seconds >timer_sec :
+        #     draw_text('Welcome To Spy', font2, (255, 255, 255), screen, screen_width // 3, screen_height // 2.5)
+        # else:
+        #     draw_text('', font2, (255, 255, 255), screen, screen_width // 3, screen_height // 2.5)
+
+        if iknow_button.collide():
+            print("i know some shiieeet")
+
+        for event in pygame.event.get():
+            if event.type == pygame.USEREVENT:
+                timer_sec -= 1
+                text = str(timer_sec).rjust(3) if timer_sec > 0 else 'Game Over, SPY Won!'
+                #iknow_button.draw()
+
+
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    running = False
+
+        else:
+            screen.fill((0, 0, 0))
+            screen.blit(font2.render(text, True, (255, 255, 255,255)), (300, 250))
+            iknow_button.draw()
+
+            pygame.display.flip()
+            clock.tick(60)
+            continue
+        pygame.display.update()
+        mainClock.tick(60)
+
+
+
+    
+def random_string_to_screen(screen,pack):
+
+    str = random.choice(pack)
+    split = str.split()
+
+    if len(split) == 1:
+        draw_text(f"{str}", font2, (255, 255, 255), screen, screen_width // 2.1, screen_height // 2.5)
+    elif len(split) == 3:
+        draw_text(f"{split[0]} {split[0]} {split[2]} ", font2, (255, 255, 255), screen, screen_width // 2.5, screen_height // 2.5)
+       # draw_text(f"{split[0]} {split[1]}", font2, (255, 255, 255), screen, screen_width // 2.5, screen_height // 3)
+    else:
+        draw_text(f"{split[0]}", font2, (255, 255, 255), screen, screen_width // 2.3, screen_height // 3)
+        draw_text(f"{split[1]}", font2, (255, 255, 255), screen, screen_width // 2.3, screen_height // 2.3)
+    return str
+
+
+
+def game():
+    global player_count
+    global timer_min
+    running = True
+    screen.fill((0, 0, 0))
+    p_num = 0
+
+    spy_button.draw()
+    word = random_string_to_screen(screen, basic_pack)
+    word_array = ["You are SPY!"]
+    for _ in range(0,player_count-1):
+        word_array.append(word)
+
+    #screen.fill((0, 0, 0))
+    spy_button.draw()
+    while running:
+
+
+        # screen.blit(spy_img, (screen_width // 3, screen_height // 2))
+        if spy_button.collide():
+            print(p_num)
+            screen.fill((0, 0, 0))
+
+            spy_button.draw()
+            if p_num <= player_count:
+
+
+                w = random_string_to_screen(screen, word_array)
+                p_num +=1
+                if w == "You are SPY!":
+                    word_array.remove(w)
+                    print(len(word_array),"word array")
+                elif p_num ==player_count:
+                    timer_screen()
+
+
+
+
+
+
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    running = False
+
+        pygame.display.update()
+        mainClock.tick(60)
+
+
+
 def rules():
+
+
     i_a = intermediate.get_rect()
     x1 = i_a[0]
     x2 = x1 + i_a[2]
@@ -104,8 +252,8 @@ def rules():
         pygame.draw.line(intermediate, color, (x1, line), (x2, line))
 
     y = 20
-    f = pygame.font.SysFont('', 17)
-    for l in string.ascii_uppercase:
+
+    for _ in string.ascii_uppercase:
         intermediate.fill((0, 0, 0))
         intermediate.blit(qa_img, (screen_width // 3, screen_height - 700))
 
